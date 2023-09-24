@@ -1,2 +1,2 @@
 # HelloOS
-记录学习编写操作系统的过程
+Record the process of learning to write an operating system
