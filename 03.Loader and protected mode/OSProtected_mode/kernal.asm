@@ -1,4 +1,4 @@
-%include “pm.inc”
+%include "pm.inc"
 
 org 0x9000
 
@@ -6,15 +6,15 @@ jmp LABEL_BEGIN
 
 [SECTION .gdt]
 LABEL_GDT:		Descriptor	0,		0,			0
-LABEL_DESC_CODE32:	Descriptor	0,		SegCode32Len - 1	DA_C + DA_32
+LABEL_DESC_CODE32:	Descriptor	0,		SegCode32Len - 1,	DA_C + DA_32
 LABEL_DESC_VIDEO:	Descriptor	0B8000h,        0ffffh,            	DA_DRW
 
-GdtLen equ $ - LABEL_GEDT
+GdtLen equ $ - LABEL_GDT
 GdtPtr dw  GdtLen - 1
        dd  0
 
-SelectorCode32 equ LABEL_DESC_CODE32 - LABLE_GDT
-SelectorVideo  equ LABLE_DESC_VIDEO - LABLE_GDT
+SelectorCode32 equ LABEL_DESC_CODE32 - LABEL_GDT
+SelectorVideo  equ LABEL_DESC_VIDEO - LABEL_GDT
 
 [SECTION .s16]
 [BITS 16]
@@ -32,8 +32,8 @@ LABEL_BEGIN:
     add  eax, LABEL_SEG_CODE32
     mov  word [LABEL_DESC_CODE32 + 2], ax
     shr  eax, 16
-    mov  byte [LABEL_DESC_CODE + 4], al
-    mov  byte [LABEL_DESC_DODE + 7], ah
+    mov  byte [LABEL_DESC_CODE32 + 4], al
+    mov  byte [LABEL_DESC_CODE32 + 7], ah
 
     ;初始化全局描述符表（GDT）以及加载 GDT 地址到 GDTR 寄存器
     xor  eax, eax
@@ -62,11 +62,12 @@ LABEL_BEGIN:
 [BITS 32]
 LABEL_SEG_CODE32:
     mov  ax, SelectorVideo
-    mov  gs, ax
+    mov  gs, ax		;将信息写入gs指向的内存后,信息会显示到屏幕上
     mov  si, msg
     mov  ebx, 10
     mov  ecx, 2
 
+;将msg指向的内容写到指定的显存的位置,并设置显示字符的一些属性
 ShowChar:
     mov  edi, (80*11)
     add  edi, ebx
